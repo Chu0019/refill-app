@@ -148,7 +148,7 @@ def list_page():
         body { font-family: sans-serif; text-align: center; padding: 20px; }
         table { width: 90%; max-width: 600px; margin: auto; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ccc; padding: 6px; }
-        img { max-width: 100%; height: 40px; object-fit: contain; }
+        img { max-width: 100%; height: auto; }
         button { font-size: 14px; padding: 4px 10px; }
         @media(max-width: 600px) {
           table, thead, tbody, th, td, tr { display: block; }
@@ -192,7 +192,7 @@ def list_table():
                   <td>{item['time']}</td>
                   <td>{item['status']}</td>
                   <td>
-                      <img src="{barcode_img}" width="300"><br>
+                      <img src="{barcode_img}" style="width: 180px; height: 60px;"><br>
                       <button onclick="markRefilled('{item['pick_id']}')">補貨完成</button>
                   </td>
                 </tr>
@@ -201,6 +201,7 @@ def list_table():
     <tr><th>時間</th><th>狀態</th><th>操作</th></tr>
     {''.join(rows)}
     </table>"""
+
 
 # 啟動 Flask 伺服器
 if __name__ == '__main__':
