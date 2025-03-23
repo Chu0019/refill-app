@@ -192,7 +192,7 @@ def list_table():
                   <td>{item['time']}</td>
                   <td>{item['status']}</td>
                   <td>
-                      <img src="{barcode_img}" width="120"><br>
+                      <img src="{barcode_img}" width="150"><br>
                       <button onclick="markRefilled('{item['pick_id']}')">補貨完成</button>
                   </td>
                 </tr>
