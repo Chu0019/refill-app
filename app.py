@@ -127,7 +127,7 @@ def refill_table():
         f"<tr><td>{item['time']}</td><td>{item['status']}</td><td>{item['message']}</td></tr>"
         for item in pending_refills if item['status'] == '待補貨'
     ]
-    return f'''<table border="1" style="width:90%; max-width:600px; margin:auto; text-align:center; font-size: 14px;"><tr><th>時間</th><th>狀態</th><th>訊息</th></tr>{''.join(rows)}</table>'''
+    return f'''<table border="1" style="width:100%; max-width:800px; margin:auto; text-align:center; font-size: 14px;"><tr><th>時間</th><th>狀態</th><th>訊息</th></tr>{''.join(rows)}</table>'''
 
 # 補貨更新
 @app.route('/list', methods=['GET','POST'])
@@ -146,7 +146,7 @@ def list_page():
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <style>
         body { font-family: sans-serif; text-align: center; padding: 20px; }
-        table { width: 90%; max-width: 600px; margin: auto; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        table { width: 100%; max-width: 800px; margin: auto; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ccc; padding: 6px; }
         img { max-width: 100%; height: auto; }
         button { font-size: 14px; padding: 4px 10px; }
@@ -192,12 +192,12 @@ def list_table():
                   <td>{item['time']}</td>
                   <td>{item['status']}</td>
                   <td>
-                      <img src="{barcode_img}" style="width: 180px; height: 60px;"><br>
+                      <img src="{barcode_img}" style="width: 100%; max-width: 280px; height: auto;"><br>
                       <button onclick="markRefilled('{item['pick_id']}')">補貨完成</button>
                   </td>
                 </tr>
             ''')
-    return f"""<table border='1' style='width:90%; max-width:600px; margin:auto; text-align:center; font-size:14px;'>
+    return f"""<table border='1' style='width:100%; max-width:800px; margin:auto; text-align:center; font-size:14px;'>
     <tr><th>時間</th><th>狀態</th><th>操作</th></tr>
     {''.join(rows)}
     </table>"""
