@@ -15,14 +15,14 @@ pending_refills = []  # 每筆記錄: {pick_id, time, status, message}
 def generate_barcode(data):
     CODE128 = barcode.get_barcode_class('code128')
     writer = ImageWriter()
-    writer.set_options({'write_text': False})
+    writer.set_options({'write_text': False})  # 不顯示條碼下方文字
     code = CODE128(data, writer=writer)
     buffer = io.BytesIO()
     code.write(buffer)
     img_str = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return f'data:image/png;base64,{img_str}'
 
-# 首頁選單
+# 首頁選單頁面
 @app.route('/')
 def index():
     return '''
@@ -48,7 +48,7 @@ def index():
     </html>
     '''
 
-# 缺貨通報頁面與通報邏輯
+# 缺貨通報頁面（支援條碼掃描）
 @app.route('/report', methods=['GET', 'POST'])
 def report():
     if request.method == 'POST':
@@ -62,7 +62,7 @@ def report():
         })
         return jsonify({'message': f"✅ 揀位 {pick_id} 缺貨通報成功"})
 
-    # GET 時回傳頁面內容
+    # GET：顯示頁面與掃描功能
     return render_template_string('''
     <html>
     <head>
@@ -81,32 +81,45 @@ def report():
     </head>
     <body>
       <h2>缺貨通報（掃描或輸入）</h2>
+      <!-- 掃描按鈕與掃描器區域 -->
       <button onclick="startScanner()">開啟相機掃描</button>
       <div id="scan-section">
         <div id="qr-reader" style="width:300px;"></div>
       </div>
+      
+      <!-- 手動輸入與通報表單 -->
       <form id="report-form">
         <input type="text" name="pick_id" placeholder="請輸入揀位號碼" required>
         <button type="submit">通報缺貨</button>
       </form>
       <div id="msg" style="margin-top:10px;font-weight:bold;color:green"></div>
 
+      <!-- 清單區塊 -->
       <h3>待補貨清單（即時顯示）</h3>
       <div id="refill-table"></div>
 
       <script>
+        let scanner;
         let scannerInitiated = false;
 
+        // 啟動掃描器
         function startScanner() {
           document.getElementById('scan-section').style.display = 'block';
           if (!scannerInitiated) {
-            new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 }).render(function(decodedText) {
-              document.querySelector('input[name=pick_id]').value = decodedText;
-            });
+            scanner = new Html5Qrcode("qr-reader");
+            scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+              (decodedText, decodedResult) => {
+                document.querySelector('input[name=pick_id]').value = decodedText;
+                scanner.stop().then(() => {
+                  document.getElementById('scan-section').style.display = 'none';
+                });
+                if (navigator.vibrate) navigator.vibrate(100);
+              });
             scannerInitiated = true;
           }
         }
 
+        // 提交缺貨表單
         document.getElementById("report-form").addEventListener("submit", function(e) {
           e.preventDefault();
           const formData = new FormData(this);
@@ -118,6 +131,7 @@ def report():
           this.reset();
         });
 
+        // 每 3 秒更新待補貨清單
         function loadRefillTable() {
           fetch("/refill-table").then(res => res.text()).then(html => {
             document.getElementById("refill-table").innerHTML = html;
@@ -130,7 +144,7 @@ def report():
     </html>
     ''')
 
-# 補貨清單資料表
+# 待補貨清單資料表（只顯示時間、狀態、訊息）
 @app.route('/refill-table')
 def refill_table():
     rows = [
@@ -139,7 +153,7 @@ def refill_table():
     ]
     return f'''<table border="1" style="width:100%; max-width:800px; margin:auto; text-align:center; font-size: 14px;"><tr><th>時間</th><th>狀態</th><th>訊息</th></tr>{''.join(rows)}</table>'''
 
-# 補貨更新
+# 補貨清單主頁與補貨完成操作
 @app.route('/list', methods=['GET','POST'])
 def list_page():
     if request.method == 'POST':
@@ -150,6 +164,7 @@ def list_page():
                 item['message'] = f"揀位 {pick_id} 補貨完成 ✅"
         return ('', 204)
 
+    # 顯示補貨清單頁面
     return render_template_string('''
     <html>
     <head>
@@ -169,6 +184,7 @@ def list_page():
       <h2>補貨清單</h2>
       <div id="list-table"></div>
       <script>
+        // 按下補貨完成按鈕
         function markRefilled(pickId) {
           fetch("/list", {
             method: "POST",
@@ -176,6 +192,8 @@ def list_page():
             body: new URLSearchParams({ pick_id: pickId })
           }).then(() => loadListTable());
         }
+
+        // 自動載入清單內容
         function loadListTable() {
           fetch("/list-table")
             .then(res => res.text())
@@ -190,7 +208,7 @@ def list_page():
     </html>
     ''')
 
-# 補貨清單資料表
+# 補貨清單內容（顯示條碼與補貨按鈕）
 @app.route('/list-table')
 def list_table():
     rows = []
