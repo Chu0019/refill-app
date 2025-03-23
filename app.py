@@ -204,4 +204,5 @@ def list_table():
 
 # 啟動 Flask 伺服器
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 10000))  # Render 會提供 PORT
+    app.run(host='0.0.0.0', port=port)
