@@ -72,7 +72,8 @@ def report():
         body { font-family: sans-serif; text-align: center; padding: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 8px; }
-        #qr-reader { max-width: 100%; }
+        #qr-reader { max-width: 100%; margin: 10px auto; }
+        #scan-section { display: none; }
         @media(max-width: 600px) {
           table, thead, tbody, th, td, tr { display: block; }
         }
@@ -80,7 +81,10 @@ def report():
     </head>
     <body>
       <h2>缺貨通報（掃描或輸入）</h2>
-      <div id="qr-reader" style="width:300px; margin:auto;"></div>
+      <button onclick="startScanner()">開啟相機掃描</button>
+      <div id="scan-section">
+        <div id="qr-reader" style="width:300px;"></div>
+      </div>
       <form id="report-form">
         <input type="text" name="pick_id" placeholder="請輸入揀位號碼" required>
         <button type="submit">通報缺貨</button>
@@ -91,11 +95,17 @@ def report():
       <div id="refill-table"></div>
 
       <script>
-        function onScanSuccess(decodedText) {
-          document.querySelector('input[name=pick_id]').value = decodedText;
-          document.getElementById('report-form').requestSubmit();
+        let scannerInitiated = false;
+
+        function startScanner() {
+          document.getElementById('scan-section').style.display = 'block';
+          if (!scannerInitiated) {
+            new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 }).render(function(decodedText) {
+              document.querySelector('input[name=pick_id]').value = decodedText;
+            });
+            scannerInitiated = true;
+          }
         }
-        new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 }).render(onScanSuccess);
 
         document.getElementById("report-form").addEventListener("submit", function(e) {
           e.preventDefault();
