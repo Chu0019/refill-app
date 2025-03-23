@@ -1,1 +1,1 @@
-web: python refill-app.py
+web: python app.py

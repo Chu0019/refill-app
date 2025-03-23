@@ -2,7 +2,5 @@ services:
   - type: web
     name: refill-app
     env: python
-    plan: free
-    buildCommand: ""
+    buildCommand: pip install -r requirements.txt
     startCommand: python app.py
-    autoDeploy: true
